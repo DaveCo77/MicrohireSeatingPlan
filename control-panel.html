@@ -29,7 +29,6 @@
             margin-bottom: 2rem;
         }
 
-        /* Grid Layout for Columns */
         .panel-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -71,9 +70,8 @@
         .danger-btn { border-color: #ff0000; color: #ff0000; margin-top: 2rem; }
         .danger-btn:hover { background-color: #ff0000; color: var(--term-bg); }
         
-        .manual-entry-row { display: flex; gap: 10px; }
-        .manual-entry-row input[type="text"] { flex-grow: 1; }
-        .manual-entry-row input.table-input { width: 80px; flex-grow: 0; text-align: center;}
+        .manual-entry-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .manual-entry-row input.table-input { grid-column: span 2; text-align: center; }
 
         .instruction-block {
             border: 1px dashed var(--term-red); padding: 1rem; margin-top: 0.5rem;
@@ -211,11 +209,13 @@
                     <label>Bulk Upload (XLSX)</label>
                     <input type="file" id="xlsxUpload" accept=".xlsx, .xls">
                     <div class="instruction-block">
-                        <strong>Parsing Rules:</strong>
+                        <strong>Parsing Rules (5 Columns):</strong>
                         <ul>
-                            <li>Reads only the <strong>first sheet</strong>.</li>
-                            <li><strong>Col A = Name</strong>, <strong>Col B = Table</strong>.</li>
-                            <li>Uploading a new file <em>appends</em> data. Use Purge to reset.</li>
+                            <li><strong>Col A</strong> = First Name</li>
+                            <li><strong>Col B</strong> = Last Name</li>
+                            <li><strong>Col C</strong> = Company</li>
+                            <li><strong>Col D</strong> = Title</li>
+                            <li><strong>Col E</strong> = Table Number</li>
                         </ul>
                     </div>
                     <button id="processXlsxBtn" class="action-btn">Execute Upload</button>
@@ -223,7 +223,13 @@
 
                 <div class="control-group">
                     <label>Manual Entry Override</label>
-                    <div class="manual-entry-row"><input type="text" id="manualName" placeholder="Guest Name"><input type="text" id="manualTable" class="table-input" placeholder="Table"></div>
+                    <div class="manual-entry-row">
+                        <input type="text" id="manualFirst" placeholder="First Name">
+                        <input type="text" id="manualLast" placeholder="Last Name">
+                        <input type="text" id="manualComp" placeholder="Company">
+                        <input type="text" id="manualTitle" placeholder="Title">
+                        <input type="text" id="manualTable" class="table-input" placeholder="Table Number">
+                    </div>
                     <button id="addManualBtn" class="action-btn">Append Record</button>
                 </div>
 
@@ -282,21 +288,47 @@
                 const wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1}); 
                 let guestData = getCurrentGuests(); 
-                const start = (json[0] && json[0][0] && json[0][0].toString().toLowerCase().includes('name')) ? 1 : 0;
+                
+                // Skip header if Row 1, Col A contains "First" or "Name"
+                const start = (json[0] && json[0][0] && (json[0][0].toString().toLowerCase().includes('first') || json[0][0].toString().toLowerCase().includes('name'))) ? 1 : 0;
+                
                 for (let i = start; i < json.length; i++) {
-                    if (json[i].length >= 2 && json[i][0] && json[i][1]) guestData.push({ name: json[i][0].toString().trim(), table: json[i][1].toString().trim() });
+                    const row = json[i];
+                    // Require at least a First Name (index 0) and Table Number (index 4)
+                    if (row.length >= 5 || (row[0] && row[4])) { 
+                        guestData.push({ 
+                            first: row[0] ? row[0].toString().trim() : '', 
+                            last: row[1] ? row[1].toString().trim() : '',
+                            company: row[2] ? row[2].toString().trim() : '',
+                            title: row[3] ? row[3].toString().trim() : '',
+                            table: row[4] ? row[4].toString().trim() : ''
+                        });
+                    }
                 }
                 pushUpdate('mh_guestData', JSON.stringify(guestData));
-                alert('Database updated successfully.');
+                alert('Database updated successfully with extended fields.');
             };
             reader.readAsArrayBuffer(file);
         });
 
         document.getElementById('addManualBtn').addEventListener('click', () => {
-            const n = document.getElementById('manualName').value.trim(); const t = document.getElementById('manualTable').value.trim();
-            if (!n || !t) return alert("Error: Both parameters required.");
-            let g = getCurrentGuests(); g.push({ name: n, table: t }); pushUpdate('mh_guestData', JSON.stringify(g));
-            document.getElementById('manualName').value = ''; document.getElementById('manualTable').value = ''; 
+            const f = document.getElementById('manualFirst').value.trim(); 
+            const l = document.getElementById('manualLast').value.trim();
+            const c = document.getElementById('manualComp').value.trim();
+            const ti = document.getElementById('manualTitle').value.trim();
+            const ta = document.getElementById('manualTable').value.trim();
+            
+            if (!f || !ta) return alert("Error: First Name and Table Number are required minimums.");
+            
+            let g = getCurrentGuests(); 
+            g.push({ first: f, last: l, company: c, title: ti, table: ta }); 
+            pushUpdate('mh_guestData', JSON.stringify(g));
+            
+            document.getElementById('manualFirst').value = ''; 
+            document.getElementById('manualLast').value = ''; 
+            document.getElementById('manualComp').value = ''; 
+            document.getElementById('manualTitle').value = ''; 
+            document.getElementById('manualTable').value = ''; 
         });
 
         document.getElementById('resetDataBtn').addEventListener('click', () => {
