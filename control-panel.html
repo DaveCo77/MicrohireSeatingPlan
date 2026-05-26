@@ -131,6 +131,15 @@
                 <div class="section-title" style="margin-top: 3rem;">Display Architecture</div>
 
                 <div class="control-group">
+                    <div class="control-header">
+                        <label>Top Clearance <span id="topClearanceVal">25</span>%</label>
+                        <button class="reset-btn" onclick="resetSlider('mh_topClearance', 'topClearance', 'topClearanceVal', '25')">↺</button>
+                    </div>
+                    <input type="range" id="topClearance" min="0" max="60" step="1" value="25">
+                    <small style="opacity:0.7; margin-top:5px;">Pushes chart down to dodge background logos.</small>
+                </div>
+
+                <div class="control-group">
                     <div class="control-header"><label for="layoutSelect">Display Layout</label><button class="reset-btn" onclick="resetSetting('mh_layout', 'layoutSelect', 'layout-grid')">↺</button></div>
                     <select id="layoutSelect">
                         <option value="layout-grid">Standard Auto-Grid</option>
@@ -200,7 +209,6 @@
 
             <div class="grid-col">
                 <div class="section-title">Media Uploads</div>
-                <div class="control-group"><label>Upload Logo</label><input type="file" id="logoUpload" accept="image/png, image/jpeg"></div>
                 <div class="control-group"><label>Upload Floorplan</label><input type="file" id="floorplanUpload" accept="image/jpeg, image/png"></div>
                 
                 <div class="section-title" style="margin-top: 3rem;">Database Management</div>
@@ -258,6 +266,7 @@
         handleSlider('tablesPerPage', 'mh_tablesPerPage', 'tablesPageVal');
         handleSlider('loopInterval', 'mh_loopInterval', 'loopTimeVal');
         handleSlider('idleTimeout', 'mh_idleTimeout', 'idleTimeVal');
+        handleSlider('topClearance', 'mh_topClearance', 'topClearanceVal', 'vh');
         
         handleSlider('titleSize', 'mh_titleSize', 'titleSizeVal', 'rem');
         handleSlider('tableSize', 'mh_tableSize', 'tableSizeVal', 'rem');
@@ -270,7 +279,7 @@
             localStorage.removeItem(storageKey); document.getElementById(elementId).value = defaultValue; document.getElementById(valId).innerText = defaultValue; pushUpdate('mh_trigger_reset', storageKey);
         };
 
-        ['logoUpload', 'floorplanUpload'].forEach(id => {
+        ['floorplanUpload'].forEach(id => {
             document.getElementById(id).addEventListener('change', function(e) {
                 if (e.target.files[0]) {
                     const r = new FileReader(); r.onload = (event) => pushUpdate('mh_' + id.replace('Upload', '_img'), event.target.result); r.readAsDataURL(e.target.files[0]);
@@ -289,12 +298,10 @@
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1}); 
                 let guestData = getCurrentGuests(); 
                 
-                // Skip header if Row 1, Col A contains "First" or "Name"
                 const start = (json[0] && json[0][0] && (json[0][0].toString().toLowerCase().includes('first') || json[0][0].toString().toLowerCase().includes('name'))) ? 1 : 0;
                 
                 for (let i = start; i < json.length; i++) {
                     const row = json[i];
-                    // Require at least a First Name (index 0) and Table Number (index 4)
                     if (row.length >= 5 || (row[0] && row[4])) { 
                         guestData.push({ 
                             first: row[0] ? row[0].toString().trim() : '', 
