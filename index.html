@@ -33,8 +33,7 @@
 
         .display-area {
             display: flex; flex-direction: column; align-items: center;
-            /* Added heavy padding-bottom so content isn't hidden behind the fixed search bar */
-            padding: var(--top-clearance) 3rem 150px 3rem; 
+            padding: var(--top-clearance) 3rem 3rem 3rem; 
             max-width: 1400px; margin: 0 auto;
         }
 
@@ -51,9 +50,30 @@
         #floorplan-container { display: none; margin-bottom: 2rem; width: 100%; text-align: center; }
         #floorplan-display { max-height: 500px; max-width: 100%; border: 2px solid var(--text-color); object-fit: contain; }
 
-        .chart-header { text-align: center; margin-bottom: 3rem; }
+        .chart-header { 
+            text-align: center; margin-bottom: 2rem; 
+            display: flex; align-items: center; justify-content: center; gap: 2rem;
+        }
         .chart-header h1 { font-size: var(--title-size); text-transform: uppercase; margin: 0; transition: font-size 0.3s; }
         
+        /* SEARCH BAR - Relocated and integrated into standard flow */
+        .search-container {
+            width: 100%; max-width: 800px; text-align: center;
+            margin: 0 auto 4rem auto; /* Bottom margin to separate from the grid */
+            z-index: 50;
+        }
+        
+        #searchInput {
+            width: 100%; padding: 1.2rem; font-size: 1.5rem; font-family: inherit;
+            border: 2px solid var(--text-color); border-radius: 8px;
+            background: rgba(0, 0, 0, 0.6); color: var(--text-color);
+            text-align: center; outline: none; transition: all 0.5s; cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        #searchInput::placeholder { color: var(--text-color); opacity: 0.7; }
+        #searchInput:focus { border-color: var(--highlight); background: rgba(0, 0, 0, 0.85); }
+
         #main-content-container { width: 100%; display: flex; flex-direction: column; align-items: center; flex-grow: 1; }
         
         .seating-page {
@@ -85,43 +105,13 @@
         .guest-item.highlight .guest-name { font-weight: bold; }
         .guest-item.fade { opacity: 0.2; }
 
-        .page-indicators { display: flex; gap: 10px; margin-bottom: 4rem; }
+        .page-indicators { display: flex; gap: 10px; margin-top: 2rem; }
         .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: background 0.3s; }
         .dot.active { background: var(--text-color); }
 
-        /* SEARCH BAR - Converted to Fixed Position */
-        .search-container {
-            position: fixed;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 800px;
-            z-index: 900; 
-            transition: bottom 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-            text-align: center;
-        }
-        
-        /* Pushes the search bar up to sit precisely on top of the keyboard when active */
-        .search-container.kb-open {
-            bottom: 350px; 
-        }
-
-        #searchInput {
-            width: 100%; padding: 1.2rem; font-size: 1.5rem; font-family: inherit;
-            border: 2px solid var(--text-color); border-radius: 8px;
-            background: rgba(0, 0, 0, 0.85); color: var(--text-color);
-            text-align: center; outline: none; transition: all 0.5s; cursor: pointer;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        #searchInput::placeholder { color: var(--text-color); opacity: 0.7; }
-        #searchInput:focus { border-color: var(--highlight); }
-
-        /* Custom OSK Styles */
         #custom-keyboard {
             position: fixed; bottom: -100%; left: 0; width: 100%;
-            background: rgba(15, 15, 15, 0.95); padding: 20px 10px 30px;
+            background: rgba(15, 15, 15, 0.95); padding: 20px 10px 40px;
             box-shadow: 0 -10px 40px rgba(0,0,0,0.9);
             transition: bottom 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
             display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -151,7 +141,12 @@
         <div id="floorplan-container"><img id="floorplan-display" src="" alt="Floorplan"></div>
 
         <div class="chart-header">
+            <img id="logo-display" src="" alt="Event Logo" style="display: none;">
             <h1>Seating Chart</h1>
+        </div>
+
+        <div class="search-container" id="search-wrapper">
+            <input type="text" id="searchInput" placeholder="TAP HERE TO SEARCH YOUR NAME" readonly>
         </div>
 
         <div id="main-content-container">
@@ -160,10 +155,6 @@
 
         <div class="page-indicators" id="page-indicators"></div>
     </main>
-
-    <div class="search-container" id="search-wrapper">
-        <input type="text" id="searchInput" placeholder="TAP HERE TO SEARCH YOUR NAME" readonly>
-    </div>
 
     <div id="custom-keyboard">
         <div class="kb-row">
@@ -193,7 +184,6 @@
     <script>
         const root = document.documentElement;
         const searchInput = document.getElementById('searchInput');
-        const searchWrapper = document.getElementById('search-wrapper');
         const mainContainer = document.getElementById('main-content-container');
         const indicatorsContainer = document.getElementById('page-indicators');
         const keyboard = document.getElementById('custom-keyboard');
@@ -211,9 +201,8 @@
         let idleTimer = null;
         let totalPages = 0;
 
-        // NEW: Dedicated Keyboard Idle Timer
         let kbIdleTimer = null;
-        const KB_TIMEOUT_MS = 8000; // 8 seconds of typing inactivity drops the keyboard
+        const KB_TIMEOUT_MS = 8000; 
 
         function renderTables() {
             if (!guests || guests.length === 0) {
@@ -302,21 +291,17 @@
 
         function closeKeyboard() {
             keyboard.classList.remove('active');
-            searchWrapper.classList.remove('kb-open');
         }
 
         function openKeyboard() {
             keyboard.classList.add('active');
-            searchWrapper.classList.add('kb-open');
         }
 
-        // Dedicated timeout just to hide the keyboard while keeping the search query visible
         function resetKbIdleTimer() {
             clearTimeout(kbIdleTimer);
             if (keyboard.classList.contains('active')) {
                 kbIdleTimer = setTimeout(() => {
                     closeKeyboard();
-                    // Notice we don't clear the search here. We let the main idle timer handle that.
                 }, KB_TIMEOUT_MS);
             }
         }
@@ -330,7 +315,6 @@
             
             resetKbIdleTimer();
 
-            // The main wipe-and-reset timer driven by Control Panel
             idleTimer = setTimeout(() => {
                 searchInput.value = '';
                 closeKeyboard(); 
@@ -419,6 +403,11 @@
             if (e.key === 'mh_guestSize') root.style.setProperty('--guest-size', e.newValue);
             if (e.key === 'mh_topClearance') root.style.setProperty('--top-clearance', e.newValue);
             
+            if (e.key === 'mh_logo_img') { 
+                const logoDisplay = document.getElementById('logo-display');
+                logoDisplay.src = e.newValue; 
+                logoDisplay.style.display = 'block'; 
+            }
             if (e.key === 'mh_floorplan_img') { document.getElementById('floorplan-display').src = e.newValue; document.getElementById('floorplan-container').style.display = 'block'; }
             
             if (e.key === 'mh_layout') {
@@ -462,6 +451,7 @@
                 mainContainer.innerHTML = '<p style="text-align: center; width: 100%;">Awaiting data configuration...</p>';
                 indicatorsContainer.innerHTML = '';
                 document.getElementById('floorplan-container').style.display = 'none';
+                document.getElementById('logo-display').style.display = 'none';
                 clearInterval(loopTimer); clearTimeout(idleTimer); clearTimeout(kbIdleTimer);
                 searchInput.value = '';
                 closeKeyboard();
@@ -498,6 +488,11 @@
             renderTables(); 
         }
         
+        if(localStorage.getItem('mh_logo_img')) { 
+            const logoDisplay = document.getElementById('logo-display');
+            logoDisplay.src = localStorage.getItem('mh_logo_img'); 
+            logoDisplay.style.display = 'block'; 
+        }
         if(localStorage.getItem('mh_floorplan_img')) { document.getElementById('floorplan-display').src = localStorage.getItem('mh_floorplan_img'); document.getElementById('floorplan-container').style.display = 'block'; }
         
         handleInteraction();
