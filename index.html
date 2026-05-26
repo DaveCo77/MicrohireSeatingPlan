@@ -7,39 +7,41 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Roboto:wght@300;400;700&family=Open+Sans:wght@300;400;600&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;600&family=Oswald:wght@300;400;600&family=Raleway:wght@300;400;600&family=Poppins:wght@300;400;600&family=Nunito:wght@300;400;600&family=Merriweather:wght@300;400;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --bg-color: #000000; --text-color: #ffffff; --font-main: 'Helvetica Neue', Arial, sans-serif;
             --highlight: #0056b3; --highlight-text: #ffffff;
             --title-size: 3.5rem; --table-size: 1.4rem; --guest-size: 1.2rem;
+            --top-clearance: 25vh; 
         }
 
         body, html {
             margin: 0; padding: 0; min-height: 100vh; font-family: var(--font-main);
-            background-color: var(--bg-color); color: var(--text-color);
+            color: var(--text-color);
             text-shadow: 0px 4px 15px rgba(0, 0, 0, 0.9), 0px 1px 3px rgba(0,0,0,0.8);
-            transition: background-color 0.3s, color 0.3s, font-family 0.3s;
+            transition: color 0.3s, font-family 0.3s;
+            background-color: var(--bg-color);
+            background-image: url('QLD_Forum SeatplanBackground.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            overflow-x: hidden;
         }
 
         .display-area {
             display: flex; flex-direction: column; align-items: center;
-            padding: 3rem; max-width: 1400px; margin: 0 auto;
+            /* Added heavy padding-bottom so content isn't hidden behind the fixed search bar */
+            padding: var(--top-clearance) 3rem 150px 3rem; 
+            max-width: 1400px; margin: 0 auto;
         }
 
-        /* IDLE MODE (Burn-In Protection) */
         body.idle-mode #main-content-container { opacity: 0.25; transition: opacity 2s ease-in-out; }
         body.active-mode #main-content-container { opacity: 1; transition: opacity 0.5s ease-in-out; }
-        
-        body.idle-mode #logo-display { animation: pulse 4s infinite ease-in-out; }
         body.idle-mode .search-container input { border-color: rgba(255, 255, 255, 0.5); animation: borderPulse 4s infinite ease-in-out; }
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 20px rgba(255,255,255,0.4)); }
-            100% { transform: scale(1); opacity: 0.8; }
-        }
         @keyframes borderPulse {
             0% { box-shadow: 0 0 0 rgba(255,255,255,0); }
             50% { box-shadow: 0 0 20px rgba(255,255,255,0.3); }
@@ -47,17 +49,11 @@
         }
 
         #floorplan-container { display: none; margin-bottom: 2rem; width: 100%; text-align: center; }
-        #logo-display { max-height: 150px; max-width: 400px; object-fit: contain; transition: all 1s ease; }
         #floorplan-display { max-height: 500px; max-width: 100%; border: 2px solid var(--text-color); object-fit: contain; }
 
-        .chart-header { 
-            text-align: center; margin-bottom: 3rem; 
-            /* NEW: Flex layout for logo + title text */
-            display: flex; align-items: center; justify-content: center; gap: 2rem;
-        }
+        .chart-header { text-align: center; margin-bottom: 3rem; }
         .chart-header h1 { font-size: var(--title-size); text-transform: uppercase; margin: 0; transition: font-size 0.3s; }
         
-        /* Pagination Container */
         #main-content-container { width: 100%; display: flex; flex-direction: column; align-items: center; flex-grow: 1; }
         
         .seating-page {
@@ -66,7 +62,6 @@
             animation: fadeIn 0.8s ease-in-out forwards;
         }
 
-        /* Layout Management within active pages */
         .seating-page.active.layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 4rem; }
         .seating-page.active.layout-columns { display: block; column-count: 3; column-gap: 4rem; }
         @media (max-width: 1000px) { .seating-page.active.layout-columns { column-count: 2; } }
@@ -90,24 +85,64 @@
         .guest-item.highlight .guest-name { font-weight: bold; }
         .guest-item.fade { opacity: 0.2; }
 
+        .page-indicators { display: flex; gap: 10px; margin-bottom: 4rem; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: background 0.3s; }
+        .dot.active { background: var(--text-color); }
+
+        /* SEARCH BAR - Converted to Fixed Position */
         .search-container {
-            width: 100%; max-width: 800px; text-align: center;
-            margin-top: 2rem; padding-top: 2rem; border-top: 1px dashed var(--text-color);
-            position: sticky; bottom: 3rem; 
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            z-index: 900; 
+            transition: bottom 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            text-align: center;
         }
+        
+        /* Pushes the search bar up to sit precisely on top of the keyboard when active */
+        .search-container.kb-open {
+            bottom: 350px; 
+        }
+
         #searchInput {
             width: 100%; padding: 1.2rem; font-size: 1.5rem; font-family: inherit;
             border: 2px solid var(--text-color); border-radius: 8px;
-            background: rgba(0, 0, 0, 0.8); color: var(--text-color);
-            text-align: center; outline: none; transition: all 0.5s;
+            background: rgba(0, 0, 0, 0.85); color: var(--text-color);
+            text-align: center; outline: none; transition: all 0.5s; cursor: pointer;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         #searchInput::placeholder { color: var(--text-color); opacity: 0.7; }
         #searchInput:focus { border-color: var(--highlight); }
 
-        /* Page Indicators */
-        .page-indicators { display: flex; gap: 10px; margin-top: 2rem; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: background 0.3s; }
-        .dot.active { background: var(--text-color); }
+        /* Custom OSK Styles */
+        #custom-keyboard {
+            position: fixed; bottom: -100%; left: 0; width: 100%;
+            background: rgba(15, 15, 15, 0.95); padding: 20px 10px 30px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.9);
+            transition: bottom 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            z-index: 1000; backdrop-filter: blur(15px); border-top: 1px solid rgba(255,255,255,0.1);
+            box-sizing: border-box;
+        }
+        #custom-keyboard.active { bottom: 0; }
+        
+        .kb-row { display: flex; justify-content: center; gap: 8px; width: 100%; max-width: 1000px; }
+        
+        .kb-key {
+            background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px; padding: 20px 0; font-size: 1.4rem; font-family: var(--font-main);
+            cursor: pointer; flex-grow: 1; flex-basis: 0; user-select: none; transition: all 0.1s;
+        }
+        
+        .kb-key:active { background: rgba(255, 255, 255, 0.3); transform: scale(0.95); }
+        .kb-key.wide { flex-grow: 2; font-size: 1.1rem; letter-spacing: 1px; font-weight: bold; }
+        .kb-key.space { flex-grow: 6; }
+        .kb-key.action-clear { background: rgba(179, 0, 0, 0.3); }
+        .kb-key.action-close { background: rgba(0, 86, 179, 0.4); }
     </style>
 </head>
 <body class="active-mode">
@@ -116,7 +151,6 @@
         <div id="floorplan-container"><img id="floorplan-display" src="" alt="Floorplan"></div>
 
         <div class="chart-header">
-            <img id="logo-display" src="" alt="Event Logo">
             <h1>Seating Chart</h1>
         </div>
 
@@ -125,33 +159,62 @@
         </div>
 
         <div class="page-indicators" id="page-indicators"></div>
-
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="TAP HERE TO SEARCH YOUR NAME">
-        </div>
     </main>
+
+    <div class="search-container" id="search-wrapper">
+        <input type="text" id="searchInput" placeholder="TAP HERE TO SEARCH YOUR NAME" readonly>
+    </div>
+
+    <div id="custom-keyboard">
+        <div class="kb-row">
+            <button class="kb-key">Q</button><button class="kb-key">W</button><button class="kb-key">E</button>
+            <button class="kb-key">R</button><button class="kb-key">T</button><button class="kb-key">Y</button>
+            <button class="kb-key">U</button><button class="kb-key">I</button><button class="kb-key">O</button>
+            <button class="kb-key">P</button>
+        </div>
+        <div class="kb-row" style="width: 95%;">
+            <button class="kb-key">A</button><button class="kb-key">S</button><button class="kb-key">D</button>
+            <button class="kb-key">F</button><button class="kb-key">G</button><button class="kb-key">H</button>
+            <button class="kb-key">J</button><button class="kb-key">K</button><button class="kb-key">L</button>
+        </div>
+        <div class="kb-row" style="width: 90%;">
+            <button class="kb-key">Z</button><button class="kb-key">X</button><button class="kb-key">C</button>
+            <button class="kb-key">V</button><button class="kb-key">B</button><button class="kb-key">N</button>
+            <button class="kb-key">M</button>
+            <button class="kb-key wide" id="kb-backspace">DELETE</button>
+        </div>
+        <div class="kb-row">
+            <button class="kb-key wide action-clear" id="kb-clear">CLEAR</button>
+            <button class="kb-key space" id="kb-space">SPACE</button>
+            <button class="kb-key wide action-close" id="kb-close">DONE</button>
+        </div>
+    </div>
 
     <script>
         const root = document.documentElement;
         const searchInput = document.getElementById('searchInput');
+        const searchWrapper = document.getElementById('search-wrapper');
         const mainContainer = document.getElementById('main-content-container');
         const indicatorsContainer = document.getElementById('page-indicators');
+        const keyboard = document.getElementById('custom-keyboard');
         
         let guests = []; 
         let currentLayout = localStorage.getItem('mh_layout') || 'layout-grid';
         
-        // Settings Variables
         let tablesPerPage = parseInt(localStorage.getItem('mh_tablesPerPage')) || 15;
         let loopIntervalMs = parseInt(localStorage.getItem('mh_loopInterval') || 8) * 1000;
         let idleTimeoutMs = parseInt(localStorage.getItem('mh_idleTimeout') || 15) * 1000;
-        let burnInEnabled = localStorage.getItem('mh_burnIn') !== 'false'; // Defaults to true
+        let burnInEnabled = localStorage.getItem('mh_burnIn') !== 'false'; 
         
         let currentPageIndex = 0;
         let loopTimer = null;
         let idleTimer = null;
         let totalPages = 0;
 
-        // --- Core Render Logic ---
+        // NEW: Dedicated Keyboard Idle Timer
+        let kbIdleTimer = null;
+        const KB_TIMEOUT_MS = 8000; // 8 seconds of typing inactivity drops the keyboard
+
         function renderTables() {
             if (!guests || guests.length === 0) {
                 mainContainer.innerHTML = '<p style="text-align: center; width: 100%;">Awaiting data configuration...</p>';
@@ -160,7 +223,6 @@
                 return;
             }
 
-            // Organize by table, storing the full guest object
             const tables = {};
             guests.forEach(g => { 
                 if (!tables[g.table]) tables[g.table] = []; 
@@ -186,12 +248,9 @@
                 pageTables.forEach(tableName => {
                     html += `<div class="table-group"><h3>Table ${tableName}</h3><ul>`;
                     
-                    // Sort guests within the table by Last Name alphabetically
                     tables[tableName].sort((a, b) => a.last.localeCompare(b.last)).forEach(guest => {
                         const fullName = `${guest.first} ${guest.last}`.trim();
-                        // Build subtitle string only if title/company exist
                         const subDetails = [guest.title, guest.company].filter(Boolean).join(' | ');
-                        // Combine everything into a single string for the omni-search
                         const searchString = `${fullName} ${guest.company} ${guest.title}`.toLowerCase();
                         
                         html += `
@@ -234,11 +293,32 @@
 
         function startLoop() {
             clearInterval(loopTimer);
-            if (totalPages <= 1) return; 
+            if (totalPages <= 1 || keyboard.classList.contains('active')) return; 
             loopTimer = setInterval(() => {
                 let next = (currentPageIndex + 1) % totalPages;
                 showPage(next);
             }, loopIntervalMs);
+        }
+
+        function closeKeyboard() {
+            keyboard.classList.remove('active');
+            searchWrapper.classList.remove('kb-open');
+        }
+
+        function openKeyboard() {
+            keyboard.classList.add('active');
+            searchWrapper.classList.add('kb-open');
+        }
+
+        // Dedicated timeout just to hide the keyboard while keeping the search query visible
+        function resetKbIdleTimer() {
+            clearTimeout(kbIdleTimer);
+            if (keyboard.classList.contains('active')) {
+                kbIdleTimer = setTimeout(() => {
+                    closeKeyboard();
+                    // Notice we don't clear the search here. We let the main idle timer handle that.
+                }, KB_TIMEOUT_MS);
+            }
         }
 
         function handleInteraction() {
@@ -247,9 +327,13 @@
             
             clearTimeout(idleTimer);
             clearInterval(loopTimer); 
+            
+            resetKbIdleTimer();
 
+            // The main wipe-and-reset timer driven by Control Panel
             idleTimer = setTimeout(() => {
                 searchInput.value = '';
+                closeKeyboard(); 
                 applySearch(); 
                 showPage(0);   
                 startLoop();   
@@ -275,7 +359,6 @@
             let foundPageIndex = -1;
 
             items.forEach(item => {
-                // Now searching against the expanded data string
                 const searchData = item.getAttribute('data-search');
                 if (searchData.includes(query)) {
                     item.classList.add('highlight'); item.classList.remove('fade');
@@ -292,11 +375,41 @@
             }
         }
 
-        searchInput.addEventListener('input', applySearch);
+        searchInput.addEventListener('click', () => {
+            openKeyboard();
+            handleInteraction(); 
+        });
+
+        document.querySelectorAll('.kb-key:not(.wide):not(.space)').forEach(btn => {
+            btn.addEventListener('click', () => {
+                searchInput.value += btn.innerText;
+                applySearch();
+            });
+        });
+
+        document.getElementById('kb-space').addEventListener('click', () => {
+            searchInput.value += ' ';
+            applySearch();
+        });
+
+        document.getElementById('kb-backspace').addEventListener('click', () => {
+            searchInput.value = searchInput.value.slice(0, -1);
+            applySearch();
+        });
+
+        document.getElementById('kb-clear').addEventListener('click', () => {
+            searchInput.value = '';
+            applySearch();
+        });
+
+        document.getElementById('kb-close').addEventListener('click', () => {
+            closeKeyboard();
+            startLoop(); 
+        });
+
         window.addEventListener('touchstart', handleInteraction);
         window.addEventListener('mousemove', handleInteraction);
-        window.addEventListener('keydown', handleInteraction);
-
+        
         window.addEventListener('storage', (e) => {
             if (e.key === 'mh_bgColor') root.style.setProperty('--bg-color', e.newValue);
             if (e.key === 'mh_textColor') root.style.setProperty('--text-color', e.newValue);
@@ -304,8 +417,8 @@
             if (e.key === 'mh_titleSize') root.style.setProperty('--title-size', e.newValue);
             if (e.key === 'mh_tableSize') root.style.setProperty('--table-size', e.newValue);
             if (e.key === 'mh_guestSize') root.style.setProperty('--guest-size', e.newValue);
+            if (e.key === 'mh_topClearance') root.style.setProperty('--top-clearance', e.newValue);
             
-            if (e.key === 'mh_logo_img') { document.getElementById('logo-display').src = e.newValue; document.getElementById('logo-container').style.display = 'block'; }
             if (e.key === 'mh_floorplan_img') { document.getElementById('floorplan-display').src = e.newValue; document.getElementById('floorplan-container').style.display = 'block'; }
             
             if (e.key === 'mh_layout') {
@@ -315,12 +428,10 @@
                 });
             }
             
-            // Timing & Pagination Updates
             if (e.key === 'mh_tablesPerPage') { tablesPerPage = parseInt(e.newValue); renderTables(); }
             if (e.key === 'mh_loopInterval') { loopIntervalMs = parseInt(e.newValue) * 1000; startLoop(); }
             if (e.key === 'mh_idleTimeout') { idleTimeoutMs = parseInt(e.newValue) * 1000; handleInteraction(); }
             
-            // Burn-In Toggle Update
             if (e.key === 'mh_burnIn') {
                 burnInEnabled = e.newValue === 'true';
                 if (!burnInEnabled) {
@@ -331,7 +442,6 @@
                 }
             }
 
-            // Updated to handle complex objects
             if (e.key === 'mh_guestData') { guests = JSON.parse(e.newValue); renderTables(); }
 
             if (e.key === 'mh_trigger_reset') {
@@ -342,6 +452,7 @@
                 if(t === 'mh_titleSize') root.style.setProperty('--title-size', '3.5rem');
                 if(t === 'mh_tableSize') root.style.setProperty('--table-size', '1.4rem');
                 if(t === 'mh_guestSize') root.style.setProperty('--guest-size', '1.2rem');
+                if(t === 'mh_topClearance') root.style.setProperty('--top-clearance', '25vh');
                 if(t === 'mh_layout') { currentLayout = 'layout-grid'; document.querySelectorAll('.seating-page').forEach(p => p.className = `seating-page ${p.classList.contains('active') ? 'active' : ''} layout-grid`); }
                 if(t === 'mh_burnIn') { burnInEnabled = true; handleInteraction(); }
             }
@@ -350,10 +461,10 @@
                 guests = [];
                 mainContainer.innerHTML = '<p style="text-align: center; width: 100%;">Awaiting data configuration...</p>';
                 indicatorsContainer.innerHTML = '';
-                document.getElementById('logo-container').style.display = 'none';
                 document.getElementById('floorplan-container').style.display = 'none';
-                clearInterval(loopTimer); clearTimeout(idleTimer);
+                clearInterval(loopTimer); clearTimeout(idleTimer); clearTimeout(kbIdleTimer);
                 searchInput.value = '';
+                closeKeyboard();
                 
                 root.style.setProperty('--bg-color', '#000000');
                 root.style.setProperty('--text-color', '#ffffff');
@@ -361,11 +472,11 @@
                 root.style.setProperty('--title-size', '3.5rem');
                 root.style.setProperty('--table-size', '1.4rem');
                 root.style.setProperty('--guest-size', '1.2rem');
+                root.style.setProperty('--top-clearance', '25vh');
             }
         });
 
-        // --- Initialization ---
-        ['mh_bgColor', 'mh_textColor', 'mh_font', 'mh_titleSize', 'mh_tableSize', 'mh_guestSize'].forEach(key => {
+        ['mh_bgColor', 'mh_textColor', 'mh_font', 'mh_titleSize', 'mh_tableSize', 'mh_guestSize', 'mh_topClearance'].forEach(key => {
             if(localStorage.getItem(key)) {
                 let cssVar = '--' + key.replace('mh_', '').replace(/([A-Z])/g, "-$1").toLowerCase();
                 if(key === 'mh_font') cssVar = '--font-main'; 
@@ -373,12 +484,9 @@
             }
         });
         
-        // Ensure complex objects are correctly parsed on load
         if(localStorage.getItem('mh_guestData')) { 
-            // Fallback mapper in case old localstorage data exists (strings instead of objects)
             let rawData = JSON.parse(localStorage.getItem('mh_guestData'));
             if(rawData.length > 0 && typeof rawData[0].name !== 'undefined') {
-                 // Migrate old format to new format
                  guests = rawData.map(g => ({
                      first: g.name.split(' ')[0] || '',
                      last: g.name.split(' ').slice(1).join(' ') || '',
@@ -390,7 +498,6 @@
             renderTables(); 
         }
         
-        if(localStorage.getItem('mh_logo_img')) { document.getElementById('logo-display').src = localStorage.getItem('mh_logo_img'); document.getElementById('logo-container').style.display = 'block'; }
         if(localStorage.getItem('mh_floorplan_img')) { document.getElementById('floorplan-display').src = localStorage.getItem('mh_floorplan_img'); document.getElementById('floorplan-container').style.display = 'block'; }
         
         handleInteraction();
